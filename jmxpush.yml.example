@@ -1,0 +1,38 @@
+# Idea borrowed from riemann-jmx:
+#  - https://github.com/wikimedia/riemann-jmx
+#  - https://github.com/twosigma/riemann-jmx
+
+push-to:
+ host     : 192.168.11.19
+ port     : 2003
+ interval : 5
+
+jmx:
+ host   : diadoc-cass1
+ port   : 7199
+ # Outgoing metrics should look like "prefix.host.service.attr"
+ prefix : prefix
+queries : 
+ - service     : "cassandra.read"
+   obj         : "org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency"
+   attr        : [ "95thPercentile", "99thPercentile" ]
+
+ - obj     : "kafka:type=kafka.LogFlushStats"
+   attr    : [ AvgFlushMs, FlushesPerSecond, MaxFlushMs, NumFlushes, TotalFlushMs ]
+
+ - obj     : "kafka:type=kafka.SocketServerStats"
+   attr    :
+    -   AvgFetchRequestMs
+    -   AvgProduceRequestMs
+    -   BytesReadPerSecond
+    -   BytesWrittenPerSecond
+    -   FetchRequestsPerSecond
+    -   MaxFetchRequestMs
+    -   MaxProduceRequestMs
+    -   NumFetchRequests
+    -   NumProduceRequests
+    -   ProduceRequestsPerSecond
+    -   TotalBytesRead
+    -   TotalBytesWritten
+    -   TotalFetchRequestMs
+    -   TotalProduceRequestMs

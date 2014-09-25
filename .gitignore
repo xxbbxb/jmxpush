@@ -5,5 +5,7 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
+*.yml
 /.lein-*
 /.nrepl-port
+/.idea

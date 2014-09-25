@@ -1,4 +1,4 @@
-# riemann-jmx-clj
+# jmxpush
 
 A Clojure clone of riemann-jmx.
 
@@ -8,18 +8,15 @@ Use `lein uberjar` to build the standalone jar.
 
 ## Usage
 
-Pass each of the riemann-jmx-config.yaml as command line options, e.g.:
+Pass each of the jmxpush.yml as command line options, e.g.:
 
 ```
-java -jar riemann-jmx-clj-standalone.jar jvm-config-1.yaml jvm-config-2.yaml jvm-config-3.yaml
+java -jar jmxpush-standalone.jar jvm-config-1.yml jvm-config-2.yml jvm-config-3.yml
 ```
-
-Supports composite mbeans as well, unlike the current riemann-jmx.
-
-See riemann-jmx.yaml.example for an example of how to write a configuration file.
+See jmxpush.yml.example for an example of how to write a configuration file.
 
 ## License
 
-Copyright © 2013 Two Sigma
+Copyright © 2014 https://github.com/xxbbxb/jmxpush
 
 Distributed under the Eclipse Public License version 1.0
