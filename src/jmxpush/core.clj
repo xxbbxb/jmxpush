@@ -2,7 +2,8 @@
   (:require [clojure.java.jmx :as jmx]
             [clj-yaml.core :as yaml]
             [jmxpush.connection :as connection]
-            [clojure.pprint :refer (pprint)])
+            [clojure.pprint :refer (pprint)]
+            [clojure.string :refer (join)])
   (:gen-class))
 
 (defn- get-connection-helper
@@ -19,33 +20,38 @@
 (defn run-queries
   [yaml]
   (let [{:keys [jmx queries]} yaml]
-    (->> (jmx/with-connection jmx
-           (doall
-             (for [{:keys [obj attr]} queries
-                   name (jmx/mbean-names obj)
-                   attr attr]
-               {:metric (str (:prefix jmx) "." service "." (:host jmx))
-                :value (jmx/read name attr)})))
-         (mapcat (fn [{:keys [metric value] :as event}]
-                   (if (map? value)
-                     (for [[k v] value]
-                       (assoc event
-                              :metric (str metric (name k))
-                              :value v))
-                     [event]))))))
+    (->>
+      (jmx/with-connection jmx
+        (doall
+          (for [query queries
+              name (jmx/mbean-names (:obj query))
+              attr (:attr query)]
+            {:metric    (join \. (filter identity [(:prefix jmx) (:host jmx) (get query :metric name) attr]))
+             :value     (jmx/read name attr)
+             :timestamp (quot (System/currentTimeMillis) 1000)})))
+      (mapcat (fn [{:keys [metric value] :as event}]
+        (if (map? value)
+          (for [[k v] value]
+           (assoc event
+             :metric (str metric \. (name k))
+             :value v))
+          [event]))))))
 
 (defn run-configuration
-  "Takes a parsed yaml config, runs the queries, and posts the results to riemann"
   [yaml]
   (let [{{:keys [host port]} :push-to} yaml
         conn (if port
-               (get-connection host port)
-               (get-connection host))
+                (get-connection host port)
+                (get-connection host))
         events (run-queries yaml)]
-
-    (print ".")
+    (print \.)
     (flush)
-    (pprint events)))
+    (connection/write
+      conn
+      (join "\n"
+        (for [event events]
+          (join " " (vals event)))))
+    (connection/write conn "\n")))
 
 (defn start-config
   "Takes a path to a yaml config, parses it, and runs it in a loop"

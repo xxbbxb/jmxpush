@@ -1,6 +1,6 @@
 # jmxpush
 
-A Clojure clone of riemann-jmx.
+Allows to push custom jmx statistics to carbon-daemon
 
 ## Building
 
@@ -9,7 +9,6 @@ Use `lein uberjar` to build the standalone jar.
 ## Usage
 
 Pass each of the jmxpush.yml as command line options, e.g.:
-
 ```
 java -jar jmxpush-standalone.jar jvm-config-1.yml jvm-config-2.yml jvm-config-3.yml
 ```
