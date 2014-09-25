@@ -10,13 +10,6 @@
   [host port]
   (doto (connection/connect {:host host :port port})))
 
-(let [get-connection-helper (memoize get-connection-helper)]
-  (defn get-connection
-    ([host]
-     (get-connection-helper host 2003))
-    ([host port]
-     (get-connection-helper host port))))
-
 (defn run-queries
   [yaml]
   (let [{:keys [jmx queries]} yaml]
@@ -41,17 +34,16 @@
   [yaml]
   (let [{{:keys [host port]} :push-to} yaml
         conn (if port
-                (get-connection host port)
-                (get-connection host))
+                (get-connection-helper host port)
+                (get-connection-helper host 2003))
         events (run-queries yaml)]
-    (print \.)
-    (flush)
-    (connection/write
-      conn
-      (join "\n"
-        (for [event events]
-          (join " " (vals event)))))
-    (connection/write conn "\n")))
+    (if (.checkError (connection/write
+        conn
+        (join "\n"
+          (for [event events]
+            (join " " (vals event))))))
+      (throw (Exception. "Unable to write")))
+    (connection/close conn)))
 
 (defn start-config
   "Takes a path to a yaml config, parses it, and runs it in a loop"
@@ -60,14 +52,19 @@
     (pprint yaml)
     (future
       (while true
+        (def r ".")
         (try
           (run-configuration yaml)
-          (Thread/sleep (* 1000 (-> yaml :push-to :interval)))
           (catch Exception e
-            (.printStackTrace e)))))))
+            (def r "e")))
+        (print r)
+        (flush)
+        (Thread/sleep (* 1000 (-> yaml :push-to :interval)))))))
+
+
 
 (defn -main
   [& args]
   (doseq [arg args]
     (start-config arg)
-    (println "Started monitors")))
+    (println "-- Started --")))
