@@ -8,7 +8,7 @@ push-to:
  interval : 5
 
 jmx:
- host   : diadoc-cass1
+ host   : cass1
  port   : 7199
  # Outgoing metrics should look like "prefix.host.service.attr"
  prefix : prefix
